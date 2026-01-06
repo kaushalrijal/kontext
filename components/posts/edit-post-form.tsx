@@ -16,6 +16,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
   const [image, setImage] = useState<string>(post.imageUrl)
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -35,6 +36,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
     const doUpdate = async () => {
       let imageUrl = post.imageUrl
+      setIsSubmitting(true)
 
       try {
         if (file) {
@@ -58,6 +60,8 @@ export function EditPostForm({ post }: EditPostFormProps) {
         router.push(`/posts/${post.id}`)
       } catch (error) {
         console.error("Failed to update post", error)
+      } finally {
+        setIsSubmitting(false)
       }
     }
 
@@ -108,10 +112,10 @@ export function EditPostForm({ post }: EditPostFormProps) {
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={!caption.trim() || !image}
+            disabled={!caption.trim() || !image || isSubmitting}
             className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity text-sm"
           >
-            Save Changes
+            {isSubmitting ? "Editing..." : "Save Changes"}
           </button>
         </div>
       </form>

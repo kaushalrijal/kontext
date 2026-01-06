@@ -3,8 +3,8 @@ export interface Post {
   caption: string
   imageUrl: string
   userId: string
-  createdAt: string
-  updatedAt: string
+  createdAt: string | Date
+  updatedAt: string | Date
   user?: {
     id: string
     name?: string | null

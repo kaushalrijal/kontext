@@ -12,6 +12,7 @@ export function CreatePostForm() {
   const [imageFileName, setImageFileName] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -31,6 +32,7 @@ export function CreatePostForm() {
     if (!caption.trim() || !file) return
 
     const doCreate = async () => {
+      setIsSubmitting(true)
       try {
         const formData = new FormData()
         formData.append("file", file)
@@ -54,6 +56,8 @@ export function CreatePostForm() {
         router.push("/posts")
       } catch (error) {
         console.error("Failed to create post", error)
+      } finally {
+        setIsSubmitting(false)
       }
     }
 
@@ -106,10 +110,10 @@ export function CreatePostForm() {
         <div className="flex gap-3 pt-4">
           <button
             type="submit"
-            disabled={!caption.trim() || !image}
+            disabled={!caption.trim() || !image || isSubmitting}
             className="px-6 py-3 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity text-sm"
           >
-            Create Post
+            {isSubmitting ? "Posting..." : "Create Post"}
           </button>
         </div>
       </form>

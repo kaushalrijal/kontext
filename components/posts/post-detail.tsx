@@ -15,6 +15,7 @@ interface PostDetailProps {
 export function PostDetail({ post }: PostDetailProps) {
   const router = useRouter()
   const [allPosts, setAllPosts] = useState<Post[]>([])
+  const [isDeleting, setIsDeleting] = useState(false)
   const { data: session } = useSession()
 
   const canEdit = useMemo(() => {
@@ -24,7 +25,6 @@ export function PostDetail({ post }: PostDetailProps) {
 
   useEffect(() => {
     let isMounted = true
-
     async function loadSimilar() {
       try {
         const posts = await listPosts()
