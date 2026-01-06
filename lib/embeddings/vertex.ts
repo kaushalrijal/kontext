@@ -4,18 +4,38 @@ import fs from "fs/promises";
 import path from "path";
 import { JWT } from "google-auth-library";
 
-const credential = JSON.parse(
-  Buffer.from(process.env.GOOGLE_SERVICE_KEY ?? "", "base64").toString()
-);
-
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT!;
 const LOCATION = process.env.GOOGLE_CLOUD_LOCATION!;
 const MODEL = "multimodalembedding@001";
+
+function getCredential() {
+  const serviceKey = process.env.GOOGLE_SERVICE_KEY;
+  if (!serviceKey) {
+    throw new Error("GOOGLE_SERVICE_KEY environment variable is not set");
+  }
+
+  try {
+    const decoded = Buffer.from(serviceKey, "base64").toString("utf-8");
+    const credential = JSON.parse(decoded);
+    
+    if (!credential.client_email || !credential.private_key) {
+      throw new Error("Invalid credential format: missing client_email or private_key");
+    }
+    
+    return credential;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error("Failed to parse GOOGLE_SERVICE_KEY: invalid JSON. Ensure it's base64-encoded JSON.");
+    }
+    throw new Error(`Failed to parse GOOGLE_SERVICE_KEY: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
 
 export class VertexEmbeddingProvider implements EmbeddingProvider {
   private jwtClient: JWT;
 
   constructor() {
+    const credential = getCredential();
     this.jwtClient = new JWT({
       email: credential.client_email,
       key: credential.private_key,
