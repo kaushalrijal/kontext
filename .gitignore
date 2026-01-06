@@ -28,3 +28,4 @@ next-env.d.ts
 
 # vertex tests
 Python/
+/lib/generated/prisma
