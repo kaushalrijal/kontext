@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { SignIn } from "@/components/auth/sign-in"
 import { isAuthenticated } from "@/lib/handlers/auth"
+import AuthTest from "@/components/auth/test"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -14,6 +15,9 @@ export default function LoginPage() {
     }
   }, [router])
 
-  return <SignIn />
+  return <>
+    <AuthTest />
+    <SignIn />
+  </>
 }
 
