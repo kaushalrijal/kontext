@@ -14,7 +14,7 @@ export function PostCard({ post, href, onClick }: PostCardProps) {
     <div className="border border-border rounded-sm overflow-hidden bg-card hover:border-primary transition-colors cursor-pointer group">
       <div className="aspect-square bg-muted overflow-hidden relative">
         <img
-          src={post.image || "/placeholder.svg"}
+          src={post.imageUrl || "/placeholder.svg"}
           alt={post.caption}
           className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
         />

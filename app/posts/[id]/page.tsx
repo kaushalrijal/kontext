@@ -4,8 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams, usePathname } from "next/navigation"
 import { Header } from "@/components/shared/header"
 import { PostDetail } from "@/components/posts/post-detail"
-import { getPostById } from "@/lib/handlers/posts"
-import { getCurrentUser, isAuthenticated } from "@/lib/handlers/auth"
+import { getPostById } from "@/lib/actions/post.actions"
 import type { Post, User } from "@/lib/types"
 
 export default function PostDetailPage() {
@@ -14,25 +13,37 @@ export default function PostDetailPage() {
   const params = useParams()
   const postId = params.id as string
   const [post, setPost] = useState<Post | null>(null)
-  const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/login")
-      return
+    let isMounted = true
+
+    async function load() {
+      try {
+        const foundPost = await getPostById(postId)
+
+        if (!foundPost) {
+          router.push("/posts")
+          return
+        }
+
+        if (isMounted) {
+          setPost(foundPost as Post)
+          setIsLoading(false)
+        }
+      } catch (error) {
+        console.error("Failed to load post", error)
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
     }
 
-    setUser(getCurrentUser())
-    const foundPost = getPostById(postId)
-    
-    if (!foundPost) {
-      router.push("/posts")
-      return
-    }
+    load()
 
-    setPost(foundPost)
-    setIsLoading(false)
+    return () => {
+      isMounted = false
+    }
   }, [router, postId, pathname])
 
   if (isLoading) {
@@ -49,7 +60,7 @@ export default function PostDetailPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header user={{ name: "Guest", email: "guest@example.com" } satisfies User} />
       <div className="max-w-7xl mx-auto px-8 py-12">
         <PostDetail post={post} />
       </div>

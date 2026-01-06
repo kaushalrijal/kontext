@@ -1,7 +1,7 @@
 export interface Post {
   id: string
   caption: string
-  image: string
+  imageUrl: string
   createdAt: string
   updatedAt: string
 }

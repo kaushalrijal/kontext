@@ -2,9 +2,10 @@
 
 import type { Post } from "@/lib/types"
 import { SimilarPosts } from "./similar-posts"
-import { getAllPosts, deletePost } from "@/lib/handlers/posts"
+import { deletePost, listPosts } from "@/lib/actions/post.actions"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
 interface PostDetailProps {
   post: Post
@@ -12,12 +13,36 @@ interface PostDetailProps {
 
 export function PostDetail({ post }: PostDetailProps) {
   const router = useRouter()
-  const allPosts = getAllPosts()
+  const [allPosts, setAllPosts] = useState<Post[]>([])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadSimilar() {
+      try {
+        const posts = await listPosts()
+        if (isMounted) {
+          setAllPosts(posts as Post[])
+        }
+      } catch (error) {
+        console.error("Failed to load similar posts", error)
+      }
+    }
+
+    loadSimilar()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleDelete = () => {
     if (confirm("Delete this post? This action cannot be undone.")) {
       deletePost(post.id)
-      router.push("/posts")
+        .then(() => router.push("/posts"))
+        .catch((error) => {
+          console.error("Failed to delete post", error)
+        })
     }
   }
 
@@ -25,8 +50,12 @@ export function PostDetail({ post }: PostDetailProps) {
     <div className="space-y-16">
       <div className="max-w-3xl">
         <div className="border border-border rounded-sm overflow-hidden bg-card">
-          <div className="aspect-square bg-muted overflow-hidden">
-            <img src={post.image || "/placeholder.svg"} alt={post.caption} className="w-full h-full object-cover" />
+          <div className="bg-muted overflow-hidden">
+            <img
+              src={post.imageUrl || "/placeholder.svg"}
+              alt={post.caption}
+              className="w-full h-auto object-contain"
+            />
           </div>
           <div className="p-8">
             <p className="text-lg text-foreground leading-relaxed mb-8">{post.caption}</p>

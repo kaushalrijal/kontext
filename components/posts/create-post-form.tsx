@@ -3,18 +3,20 @@
 import type React from "react"
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { createPost } from "@/lib/handlers/posts"
+import { createPost } from "@/lib/actions/post.actions"
 
 export function CreatePostForm() {
   const router = useRouter()
   const [caption, setCaption] = useState("")
   const [image, setImage] = useState<string | null>(null)
   const [imageFileName, setImageFileName] = useState("")
+  const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setFile(file)
       setImageFileName(file.name)
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -26,10 +28,36 @@ export function CreatePostForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (caption.trim() && image) {
-      createPost(caption, image)
-      router.push("/posts")
+    if (!caption.trim() || !file) return
+
+    const doCreate = async () => {
+      try {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        const res = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formData,
+        })
+
+        if (!res.ok) {
+          throw new Error("Failed to upload image")
+        }
+
+        const data = (await res.json()) as { imageUrl: string }
+
+        await createPost({
+          caption,
+          imageUrl: data.imageUrl,
+        })
+
+        router.push("/posts")
+      } catch (error) {
+        console.error("Failed to create post", error)
+      }
     }
+
+    void doCreate()
   }
 
   return (

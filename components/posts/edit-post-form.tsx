@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import type { Post } from "@/lib/types"
-import { updatePost } from "@/lib/handlers/posts"
+import { updatePost } from "@/lib/actions/post.actions"
 
 interface EditPostFormProps {
   post: Post
@@ -13,12 +13,14 @@ interface EditPostFormProps {
 export function EditPostForm({ post }: EditPostFormProps) {
   const router = useRouter()
   const [caption, setCaption] = useState(post.caption)
-  const [image, setImage] = useState<string>(post.image)
+  const [image, setImage] = useState<string>(post.imageUrl)
+  const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setFile(file)
       const reader = new FileReader()
       reader.onload = (e) => {
         setImage(e.target?.result as string)
@@ -29,10 +31,37 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (caption.trim() && image) {
-      updatePost(post.id, caption, image)
-      router.push(`/posts/${post.id}`)
+    if (!caption.trim()) return
+
+    const doUpdate = async () => {
+      let imageUrl = post.imageUrl
+
+      try {
+        if (file) {
+          const formData = new FormData()
+          formData.append("file", file)
+
+          const res = await fetch("/api/upload-image", {
+            method: "POST",
+            body: formData,
+          })
+
+          if (!res.ok) {
+            throw new Error("Failed to upload image")
+          }
+
+          const data = (await res.json()) as { imageUrl: string }
+          imageUrl = data.imageUrl
+        }
+
+        await updatePost({ id: post.id, caption, imageUrl })
+        router.push(`/posts/${post.id}`)
+      } catch (error) {
+        console.error("Failed to update post", error)
+      }
     }
+
+    void doUpdate()
   }
 
   return (
