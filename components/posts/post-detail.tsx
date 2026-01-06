@@ -50,11 +50,11 @@ export function PostDetail({ post }: PostDetailProps) {
     <div className="space-y-16">
       <div className="max-w-3xl">
         <div className="border border-border rounded-sm overflow-hidden bg-card">
-          <div className="bg-muted overflow-hidden">
+          <div className="bg-muted overflow-hidden flex justify-center">
             <img
               src={post.imageUrl || "/placeholder.svg"}
               alt={post.caption}
-              className="w-full h-auto object-contain"
+              className="w-full h-auto max-h-[80vh] object-contain"
             />
           </div>
           <div className="p-8">

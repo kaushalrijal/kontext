@@ -25,10 +25,12 @@ export function Header({ user }: HeaderProps) {
     <header className="border-b border-border bg-card sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
         <Link href="/posts" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">K</span>
+          <div className="w-8 h-8 rounded-sm overflow-hidden flex items-center justify-center bg-primary/10">
+            <img src="/favicon-32x32.png" alt="Kontext logo" className="w-full h-full object-contain" />
           </div>
-          <span className="font-bold text-lg text-foreground">Kontext</span>
+          <span className="font-bold text-2xl text-foreground" style={{ fontFamily: "Georgia, serif" }}>
+            Kontext
+          </span>
         </Link>
         {user && (
           <nav className="flex items-center gap-8">

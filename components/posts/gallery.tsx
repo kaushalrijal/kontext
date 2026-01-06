@@ -19,7 +19,7 @@ export function Gallery({ posts }: GalleryProps) {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-2">Your Posts</h1>
+      <h1 className="text-3xl font-bold text-foreground mb-2">Feed</h1>
       <p className="text-muted-foreground mb-10">
         {posts.length} post{posts.length !== 1 ? "s" : ""} total
       </p>

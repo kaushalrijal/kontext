@@ -11,20 +11,14 @@ export const metadata: Metadata = {
   description: "Create, edit, and share beautiful posts with similar content discovery using AI-powered embeddings",
   icons: {
     icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
     ],
-    apple: "/apple-icon.png",
+    apple: "/apple-touch-icon.png",
+    other: [
+      { rel: "android-chrome-512x512", url: "/android-chrome-512x512.png", sizes: "512x512" },
+      { rel: "android-chrome-192x192", url: "/android-chrome-192x192.png", sizes: "192x192" },
+    ],
   },
 }
 
