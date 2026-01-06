@@ -24,10 +24,10 @@ export function SimilarPosts({ currentPost, allPosts }: SimilarPostsProps) {
   }
 
   return (
-    <div className="pt-8 border-t border-border">
-      <h2 className="text-2xl font-bold text-foreground mb-3">Similar Posts</h2>
-      <p className="text-muted-foreground mb-8">Posts with similar content to yours</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="pt-6 sm:pt-8 border-t border-border">
+      <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 sm:mb-3">Similar Posts</h2>
+      <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Posts with similar content to yours</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {similarPostsWithScores.map(({ post, similarity }) => (
           <div key={post.id}>
             <PostCard post={post} href={`/posts/${post.id}`} />

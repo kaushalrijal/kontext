@@ -51,14 +51,14 @@ export default function PostDetailPage() {
     return (
       <main className="min-h-screen bg-background">
         <Header />
-        <div className="max-w-7xl mx-auto px-8 py-12 space-y-10">
-          <Skeleton className="h-[50vh] w-full rounded-sm" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 space-y-6 sm:space-y-10">
+          <Skeleton className="h-[40vh] sm:h-[50vh] w-full rounded-sm" />
           <div className="space-y-3">
-            <Skeleton className="h-5 w-64 rounded-sm" />
-            <Skeleton className="h-5 w-72 rounded-sm" />
-            <Skeleton className="h-5 w-48 rounded-sm" />
+            <Skeleton className="h-4 sm:h-5 w-48 sm:w-64 rounded-sm" />
+            <Skeleton className="h-4 sm:h-5 w-56 sm:w-72 rounded-sm" />
+            <Skeleton className="h-4 sm:h-5 w-40 sm:w-48 rounded-sm" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Array.from({ length: 3 }).map((_, idx) => (
               <div key={idx} className="space-y-2">
                 <Skeleton className="aspect-square w-full rounded-sm" />
@@ -78,7 +78,7 @@ export default function PostDetailPage() {
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         <PostDetail post={post} />
       </div>
     </main>

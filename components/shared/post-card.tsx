@@ -19,9 +19,9 @@ export function PostCard({ post, href, onClick }: PostCardProps) {
           className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
         />
       </div>
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <p className="text-sm font-medium text-foreground line-clamp-2 leading-relaxed">{post.caption}</p>
-        <p className="text-xs text-muted-foreground mt-3 font-medium">
+        <p className="text-xs text-muted-foreground mt-2 sm:mt-3 font-medium">
           {new Date(post.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
@@ -29,7 +29,7 @@ export function PostCard({ post, href, onClick }: PostCardProps) {
           })}
         </p>
         {post.user && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
             Posted by {post.user.name ?? post.user.email ?? "Unknown"}
           </p>
         )}

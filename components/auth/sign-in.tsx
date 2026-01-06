@@ -35,16 +35,16 @@ export function SignIn() {
   const isAuthenticated = status === "authenticated"
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-sm flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">K</span>
+        <div className="text-center mb-8 sm:mb-10 lg:mb-12">
+          <div className="flex justify-center mb-3 sm:mb-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary rounded-sm flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-base sm:text-lg">K</span>
             </div>
           </div>
-          <h1 className="text-4xl font-serif text-foreground mb-2">Kontext</h1>
-          <p className="text-muted-foreground">Share and discover posts</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Kontext</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Share and discover posts</p>
         </div>
 
         <div className="space-y-6">
@@ -62,7 +62,7 @@ export function SignIn() {
             <button
               onClick={handleGoogleSignIn}
               disabled={isLoading}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 sm:py-3.5 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation"
             >
               {isLoading || status === "loading" ? (
                 <>
@@ -85,7 +85,7 @@ export function SignIn() {
             <button
               onClick={handleSignOut}
               disabled={isSigningOut}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
+              className="w-full px-6 py-3 sm:py-3.5 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2 text-sm sm:text-base touch-manipulation"
             >
               {isSigningOut ? (
                 <>
@@ -109,7 +109,7 @@ export function SignIn() {
 
           <button
             onClick={handleGuestContinue}
-            className="w-full px-6 py-3 border border-border text-foreground font-bold rounded-sm hover:bg-secondary transition-colors"
+            className="w-full px-6 py-3 sm:py-3.5 border border-border text-foreground font-bold rounded-sm hover:bg-secondary transition-colors text-sm sm:text-base touch-manipulation"
           >
             Continue as Guest
           </button>

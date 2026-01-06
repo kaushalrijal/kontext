@@ -19,11 +19,11 @@ export function Gallery({ posts }: GalleryProps) {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-foreground mb-2">Feed</h1>
-      <p className="text-muted-foreground mb-10">
+      <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Feed</h1>
+      <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 lg:mb-10">
         {posts.length} post{posts.length !== 1 ? "s" : ""} total
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} href={`/posts/${post.id}`} />
         ))}
