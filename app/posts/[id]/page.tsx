@@ -5,7 +5,8 @@ import { useRouter, useParams, usePathname } from "next/navigation"
 import { Header } from "@/components/shared/header"
 import { PostDetail } from "@/components/posts/post-detail"
 import { getPostById } from "@/lib/actions/post.actions"
-import type { Post, User } from "@/lib/types"
+import type { Post } from "@/lib/types"
+import { Skeleton } from "@/components/shared/skeleton"
 
 export default function PostDetailPage() {
   const router = useRouter()
@@ -48,9 +49,25 @@ export default function PostDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto px-8 py-12 space-y-10">
+          <Skeleton className="h-[50vh] w-full rounded-sm" />
+          <div className="space-y-3">
+            <Skeleton className="h-5 w-64 rounded-sm" />
+            <Skeleton className="h-5 w-72 rounded-sm" />
+            <Skeleton className="h-5 w-48 rounded-sm" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="space-y-2">
+                <Skeleton className="aspect-square w-full rounded-sm" />
+                <Skeleton className="h-3 w-1/2 rounded-sm" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
     )
   }
 
@@ -60,7 +77,7 @@ export default function PostDetailPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Header user={{ name: "Guest", email: "guest@example.com" } satisfies User} />
+      <Header />
       <div className="max-w-7xl mx-auto px-8 py-12">
         <PostDetail post={post} />
       </div>

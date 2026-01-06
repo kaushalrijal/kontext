@@ -5,7 +5,8 @@ import { SimilarPosts } from "./similar-posts"
 import { deletePost, listPosts } from "@/lib/actions/post.actions"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useSession } from "next-auth/react"
 
 interface PostDetailProps {
   post: Post
@@ -14,6 +15,12 @@ interface PostDetailProps {
 export function PostDetail({ post }: PostDetailProps) {
   const router = useRouter()
   const [allPosts, setAllPosts] = useState<Post[]>([])
+  const { data: session } = useSession()
+
+  const canEdit = useMemo(() => {
+    const sessionUserId = (session?.user as { id?: string } | undefined)?.id
+    return sessionUserId && sessionUserId === post.userId
+  }, [session, post.userId])
 
   useEffect(() => {
     let isMounted = true
@@ -60,6 +67,14 @@ export function PostDetail({ post }: PostDetailProps) {
           <div className="p-8">
             <p className="text-lg text-foreground leading-relaxed mb-8">{post.caption}</p>
             <div className="border-t border-border pt-6 mb-8 space-y-3">
+                {post.user && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-medium text-muted-foreground">Posted by</span>
+                    <span className="text-foreground font-medium">
+                      {post.user.name ?? post.user.email ?? "Unknown"}
+                    </span>
+                  </div>
+                )}
               <div className="flex justify-between items-center text-sm">
                 <span className="font-medium text-muted-foreground">Created</span>
                 <span className="text-foreground font-medium">
@@ -85,20 +100,22 @@ export function PostDetail({ post }: PostDetailProps) {
                 </span>
               </div>
             </div>
-            <div className="flex gap-3">
-              <Link
-                href={`/posts/${post.id}/edit`}
-                className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 transition-opacity text-sm"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 border border-destructive text-destructive rounded-sm hover:bg-destructive hover:text-destructive-foreground font-bold transition-colors text-sm"
-              >
-                Delete
-              </button>
-            </div>
+            {canEdit && (
+              <div className="flex gap-3">
+                <Link
+                  href={`/posts/${post.id}/edit`}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-bold rounded-sm hover:opacity-90 transition-opacity text-sm"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 border border-destructive text-destructive rounded-sm hover:bg-destructive hover:text-destructive-foreground font-bold transition-colors text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

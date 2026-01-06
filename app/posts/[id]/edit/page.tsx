@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { Header } from "@/components/shared/header"
 import { EditPostForm } from "@/components/posts/edit-post-form"
 import { getPostById } from "@/lib/actions/post.actions"
-import type { Post, User } from "@/lib/types"
+import type { Post } from "@/lib/types"
 
 export default function EditPostPage() {
   const router = useRouter()
@@ -59,7 +59,7 @@ export default function EditPostPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Header user={{ name: "Guest", email: "guest@example.com" } satisfies User} />
+      <Header />
       <div className="max-w-7xl mx-auto px-8 py-12">
         <EditPostForm post={post} />
       </div>

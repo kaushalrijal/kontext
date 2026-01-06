@@ -2,22 +2,29 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { isAuthenticated } from "@/lib/handlers/auth"
+import { useSession } from "next-auth/react"
+import { Skeleton } from "@/components/shared/skeleton"
 
 export default function Home() {
   const router = useRouter()
+  const { status } = useSession()
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (status === "authenticated") {
       router.push("/posts")
-    } else {
+    }
+
+    if (status === "unauthenticated") {
       router.push("/login")
     }
-  }, [router])
+  }, [status, router])
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen bg-background flex items-center justify-center px-6">
+      <div className="w-full max-w-md space-y-4">
+        <Skeleton className="h-10 w-full rounded-sm" />
+        <Skeleton className="h-24 w-full rounded-sm" />
+      </div>
     </div>
   )
 }

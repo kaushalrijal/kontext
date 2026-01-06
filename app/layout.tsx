@@ -1,11 +1,15 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { Rubik } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { Providers } from "./providers"
 
-const _geist = Geist({ subsets: ["latin"] })
+const rubik = Rubik({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "Kontext - Share Your Moments",
@@ -30,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased bg-background text-foreground`}>
+      <body className={`${rubik.className} antialiased bg-background text-foreground`}>
         <Providers>{children}</Providers>
         <Analytics />
       </body>

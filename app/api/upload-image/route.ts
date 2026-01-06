@@ -2,11 +2,20 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = (session?.user as { id?: string } | undefined)?.id;
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const file = formData.get("file");
 

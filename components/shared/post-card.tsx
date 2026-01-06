@@ -28,6 +28,11 @@ export function PostCard({ post, href, onClick }: PostCardProps) {
             day: "numeric",
           })}
         </p>
+        {post.user && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Posted by {post.user.name ?? post.user.email ?? "Unknown"}
+          </p>
+        )}
       </div>
     </div>
   )

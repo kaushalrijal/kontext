@@ -2,22 +2,19 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { SignIn } from "@/components/auth/sign-in"
-import { isAuthenticated } from "@/lib/handlers/auth"
-import AuthTest from "@/components/auth/test"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { status } = useSession()
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    if (status === "authenticated") {
       router.push("/posts")
     }
-  }, [router])
+  }, [status, router])
 
-  return <>
-    <AuthTest />
-    <SignIn />
-  </>
+  return <SignIn />
 }
 

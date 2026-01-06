@@ -1,11 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { usePathname } from "next/navigation"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/shared/header"
-import { Gallery } from "@/components/posts/gallery"
 import { listPosts } from "@/lib/actions/post.actions"
-import type { Post, User } from "@/lib/types"
+import type { Post } from "@/lib/types"
+import { Skeleton } from "@/components/shared/skeleton"
+
+const Gallery = dynamic(
+  () => import("@/components/posts/gallery").then((mod) => mod.Gallery),
+  {
+    loading: () => <GallerySkeleton />,
+  }
+)
 
 export default function PostsPage() {
   const pathname = usePathname()
@@ -39,19 +47,47 @@ export default function PostsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto px-8 py-12">
+          <GallerySkeleton />
+        </div>
+      </main>
     )
   }
 
   return (
     <main className="min-h-screen bg-background">
-      <Header user={{ name: "Guest", email: "guest@example.com" } satisfies User} />
+      <Header />
       <div className="max-w-7xl mx-auto px-8 py-12">
         <Gallery posts={posts} />
       </div>
     </main>
+  )
+}
+
+function GallerySkeleton() {
+  const placeholders = useMemo(() => Array.from({ length: 6 }), [])
+
+  return (
+    <div>
+      <div className="space-y-2 mb-10">
+        <Skeleton className="h-8 w-32 rounded-sm" />
+        <Skeleton className="h-5 w-48 rounded-sm" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {placeholders.map((_, index) => (
+          <div key={index} className="border border-border rounded-sm overflow-hidden bg-card">
+            <Skeleton className="aspect-square w-full" />
+            <div className="p-5 space-y-3">
+              <Skeleton className="h-4 w-3/4 rounded-sm" />
+              <Skeleton className="h-3 w-1/3 rounded-sm" />
+              <Skeleton className="h-3 w-1/2 rounded-sm" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 

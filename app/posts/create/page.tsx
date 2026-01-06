@@ -2,37 +2,49 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Header } from "@/components/shared/header"
 import { CreatePostForm } from "@/components/posts/create-post-form"
-import { getCurrentUser, isAuthenticated } from "@/lib/handlers/auth"
-import type { User } from "@/lib/types"
+import { Skeleton } from "@/components/shared/skeleton"
 
 export default function CreatePostPage() {
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
+  const { status } = useSession()
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/login")
-      return
+    if (status === "authenticated") {
+      setIsLoading(false)
     }
 
-    setUser(getCurrentUser())
-    setIsLoading(false)
-  }, [router])
+    if (status === "unauthenticated") {
+      router.push("/login")
+    }
+  }, [status, router])
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto px-8 py-12 space-y-8">
+          <Skeleton className="h-10 w-40 rounded-sm" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full rounded-sm" />
+            <Skeleton className="h-12 w-full rounded-sm" />
+            <Skeleton className="h-48 w-full rounded-sm" />
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-28 rounded-sm" />
+              <Skeleton className="h-10 w-28 rounded-sm" />
+            </div>
+          </div>
+        </div>
+      </main>
     )
   }
 
   return (
     <main className="min-h-screen bg-background">
-      <Header user={user} />
+      <Header />
       <div className="max-w-7xl mx-auto px-8 py-12">
         <CreatePostForm />
       </div>
