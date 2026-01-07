@@ -147,6 +147,37 @@ GOOGLE_SERVICE_KEY="base64-encoded-service-account-json"
 EMBEDDING_MODEL="multimodalembedding@001"
 ```
 
+## Image Upload Setup (UploadThing)
+
+Kontext uses [UploadThing](https://uploadthing.com) for cloud image storage, which is required for production deployments on serverless platforms like Vercel.
+
+### Setup Steps
+
+1. **Create an UploadThing account** at [uploadthing.com](https://uploadthing.com)
+
+2. **Create a new app** in the UploadThing dashboard
+
+3. **Get your API keys** from the dashboard:
+   - `UPLOADTHING_SECRET` - Your secret key (starts with `sk_live_...`)
+   - `UPLOADTHING_APP_ID` - Your app ID
+
+4. **Add to your `.env.local` file:**
+```env
+UPLOADTHING_SECRET="sk_live_your_secret_key"
+UPLOADTHING_APP_ID="your_app_id"
+```
+
+5. **For production (Vercel)**, add these same variables to your Vercel project environment variables
+
+### Why UploadThing?
+
+- **Serverless Compatible**: Works with Vercel's read-only filesystem
+- **CDN Distribution**: Automatic global CDN for fast image delivery
+- **Free Tier**: 2GB storage, 10GB bandwidth per month
+- **Zero Configuration**: No S3 buckets or complex setup needed
+
+The application will automatically use UploadThing for all image uploads. Images are served directly from UploadThing's CDN with URLs like `https://utfs.io/f/...`
+
 ## Embedding Providers
 
 Kontext supports two embedding provider options. You can choose based on your needs:

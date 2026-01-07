@@ -11,116 +11,142 @@ type RouteContext =
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "multimodalembedding@001";
 
 export async function GET(req: Request, context: RouteContext) {
-  // Rate limiting
-  const identifier = getClientIdentifier(req);
-  const rateLimit = checkRateLimit(identifier, RATE_LIMITS.similarPosts);
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      {
-        error: "Too many requests. Please try again later.",
-        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
-      },
-      {
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
-          "X-RateLimit-Limit": String(RATE_LIMITS.similarPosts.maxRequests),
-          "X-RateLimit-Remaining": String(rateLimit.remaining),
-          "X-RateLimit-Reset": String(rateLimit.resetTime),
+  try {
+    // Rate limiting
+    const identifier = getClientIdentifier(req);
+    const rateLimit = checkRateLimit(identifier, RATE_LIMITS.similarPosts);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "Too many requests. Please try again later.",
+          retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
         },
-      }
-    );
-  }
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
+            "X-RateLimit-Limit": String(RATE_LIMITS.similarPosts.maxRequests),
+            "X-RateLimit-Remaining": String(rateLimit.remaining),
+            "X-RateLimit-Reset": String(rateLimit.resetTime),
+          },
+        }
+      );
+    }
 
-  const params = await Promise.resolve(context.params);
-  const postId = params.id;
+    const params = await Promise.resolve(context.params);
+    const postId = params.id;
 
-  if (!postId) {
-    return NextResponse.json(
-      { error: "Post id is required" },
-      { status: 400 }
-    );
-  }
+    if (!postId) {
+      return NextResponse.json(
+        { error: "Post id is required" },
+        { status: 400 }
+      );
+    }
 
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-        },
-      },
-    },
-  });
-
-  if (!post) {
-    return NextResponse.json({ error: "Post not found" }, { status: 404 });
-  }
-
-  const { matches, backfilledVectorLength } = await querySimilarPostsByIdWithLazyBackfill({
-    postId,
-    topK: 6,
-    excludePostId: postId,
-    getEmbedding: async () => {
-      const provider = getEmbeddingProvider();
-      return provider.embed({
-        imagePath: post.imageUrl,
-        text: post.caption,
-      });
-    },
-  });
-
-  if (backfilledVectorLength) {
-    await prisma.post.update({
+    const post = await prisma.post.findUnique({
       where: { id: postId },
-      data: {
-        pineconeCombinedVectorId: postId,
-        embeddingDim: backfilledVectorLength,
-        embeddingModel: EMBEDDING_MODEL,
-        embeddingUpdatedAt: new Date(),
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
       },
     });
-  }
 
-  if (matches.length === 0) {
-    return NextResponse.json({ results: [] });
-  }
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
 
-  const similarPosts = await prisma.post.findMany({
-    where: {
-      id: {
-        in: matches.map((m) => m.postId),
+    const { matches, backfilledVectorLength } = await querySimilarPostsByIdWithLazyBackfill({
+      postId,
+      topK: 6,
+      excludePostId: postId,
+      getEmbedding: async () => {
+        const provider = getEmbeddingProvider();
+        return provider.embed({
+          imagePath: post.imageUrl,
+          text: post.caption,
+        });
       },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
+    });
+
+    if (backfilledVectorLength) {
+      await prisma.post.update({
+        where: { id: postId },
+        data: {
+          pineconeCombinedVectorId: postId,
+          embeddingDim: backfilledVectorLength,
+          embeddingModel: EMBEDDING_MODEL,
+          embeddingUpdatedAt: new Date(),
+        },
+      });
+    }
+
+    if (matches.length === 0) {
+      return NextResponse.json({ results: [] });
+    }
+
+    const similarPosts = await prisma.post.findMany({
+      where: {
+        id: {
+          in: matches.map((m) => m.postId),
         },
       },
-    },
-  });
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    });
 
-  const postById = new Map(similarPosts.map((p) => [p.id, p]));
+    const postById = new Map(similarPosts.map((p) => [p.id, p]));
 
-  const results = matches
-    .map((match) => {
-      const matchedPost = postById.get(match.postId);
-      if (!matchedPost) return null;
-      return {
-        post: matchedPost,
-        score: match.score,
-      };
-    })
-    .filter((entry): entry is { post: typeof similarPosts[number]; score: number } => entry !== null);
+    const results = matches
+      .map((match) => {
+        const matchedPost = postById.get(match.postId);
+        if (!matchedPost) return null;
+        return {
+          post: matchedPost,
+          score: match.score,
+        };
+      })
+      .filter((entry): entry is { post: typeof similarPosts[number]; score: number } => entry !== null);
 
-  return NextResponse.json({ results });
+    return NextResponse.json({ results });
+  } catch (error) {
+    console.error("Error finding similar posts:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    // Handle embedding service unavailability
+    if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
+      return NextResponse.json(
+        { error: "Embedding service is unavailable. Please try again later." },
+        { status: 503 }
+      );
+    }
+    
+    // Handle Pinecone errors
+    if (errorMessage.includes("Pinecone") || errorMessage.includes("vector")) {
+      return NextResponse.json(
+        { error: "Vector search service error. Please try again later." },
+        { status: 503 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: "Failed to find similar posts. Please try again." },
+      { status: 500 }
+    );
+  }
 }
 
 

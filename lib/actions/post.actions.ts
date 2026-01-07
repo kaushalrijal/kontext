@@ -53,12 +53,18 @@ export async function createPost(input: {
     // Delete the post if embedding fails
     await prisma.post.delete({ where: { id: post.id } });
     
+    // Log the actual error for debugging
+    console.error("Embedding generation failed:", error);
+    
     // Re-throw with a user-friendly message
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
       throw new Error("Unable to process post. The embedding service is not available.");
     }
-    throw new Error("Failed to process post content. Please try again.");
+    if (errorMessage.includes("fetch") || errorMessage.includes("ECONNREFUSED")) {
+      throw new Error("Unable to connect to embedding service. Please check your configuration.");
+    }
+    throw new Error(`Failed to process post content: ${errorMessage}`);
   }
 
   // revalidate gallery page
@@ -144,12 +150,18 @@ export async function updatePost(input: {
 
     await upsertPostEmbedding({ postId: post.id, vector });
   } catch (error) {
+    // Log the actual error for debugging
+    console.error("Embedding update failed:", error);
+    
     // Re-throw with a user-friendly message
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
       throw new Error("Unable to update post. The embedding service is not available.");
     }
-    throw new Error("Failed to process post content. Please try again.");
+    if (errorMessage.includes("fetch") || errorMessage.includes("ECONNREFUSED")) {
+      throw new Error("Unable to connect to embedding service. Please check your configuration.");
+    }
+    throw new Error(`Failed to process post content: ${errorMessage}`);
   }
 
   revalidatePath(`/posts/${id}`);
@@ -215,12 +227,18 @@ export async function recomputePostEmbedding(id: string) {
 
     await upsertPostEmbedding({ postId: existing.id, vector });
   } catch (error) {
+    // Log the actual error for debugging
+    console.error("Embedding recompute failed:", error);
+    
     // Re-throw with a user-friendly message
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
       throw new Error("Unable to recompute embedding. The embedding service is not available.");
     }
-    throw new Error("Failed to recompute embedding. Please try again.");
+    if (errorMessage.includes("fetch") || errorMessage.includes("ECONNREFUSED")) {
+      throw new Error("Unable to connect to embedding service. Please check your configuration.");
+    }
+    throw new Error(`Failed to recompute embedding: ${errorMessage}`);
   }
 
   revalidatePath(`/posts/${id}`);
