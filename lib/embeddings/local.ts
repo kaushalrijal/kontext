@@ -41,8 +41,14 @@ export class LocalEmbeddingProvider implements EmbeddingProvider {
     }
 
     try {
+      const headers: HeadersInit = {};
+      if (process.env.EMBEDDING_SECRET) {
+        headers["x-embedding-secret"] = process.env.EMBEDDING_SECRET;
+      }
+
       const res = await fetch(LOCAL_INFERENCE_URL, {
         method: "POST",
+        headers,
         body: form,
       });
 
