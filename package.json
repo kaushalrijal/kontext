@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "start": "next start",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && next build"
+    "vercel-build": "prisma generate && node scripts/ensure-prisma-binary.js && next build"
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^3.0.0",
