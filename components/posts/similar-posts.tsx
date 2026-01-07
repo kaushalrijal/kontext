@@ -3,7 +3,7 @@
 import type { Post } from "@/lib/types"
 import { Skeleton } from "@/components/shared/skeleton"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 
 interface SimilarPostsProps {
   currentPost: Post
@@ -14,17 +14,20 @@ type SimilarPostResult = {
   score: number
 }
 
-export function SimilarPosts({ currentPost }: SimilarPostsProps) {
+function SimilarPostsInner({ currentPost }: SimilarPostsProps) {
   const [results, setResults] = useState<SimilarPostResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let isMounted = true
+    const controller = new AbortController()
     setIsLoading(true)
 
     async function loadSimilar() {
       try {
-        const res = await fetch(`/api/posts/${currentPost.id}/similar`)
+        const res = await fetch(`/api/posts/${currentPost.id}/similar`, {
+          signal: controller.signal,
+        })
         if (!res.ok) {
           throw new Error(`Failed to load similar posts: ${res.status}`)
         }
@@ -34,6 +37,9 @@ export function SimilarPosts({ currentPost }: SimilarPostsProps) {
           setResults(data.results ?? [])
         }
       } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return
+        }
         console.error("Failed to load similar posts", error)
         if (isMounted) {
           setResults([])
@@ -49,10 +55,14 @@ export function SimilarPosts({ currentPost }: SimilarPostsProps) {
 
     return () => {
       isMounted = false
+      controller.abort()
     }
   }, [currentPost.id])
 
-  const visibleResults = results.slice(0, 5)
+  const visibleResults = useMemo(
+    () => results.slice(0, 5),
+    [results]
+  )
 
   return (
     <div className="pt-6 sm:pt-8 lg:pt-0 lg:border-l border-border lg:pl-6">
@@ -125,4 +135,6 @@ export function SimilarPosts({ currentPost }: SimilarPostsProps) {
     </div>
   )
 }
+
+export const SimilarPosts = React.memo(SimilarPostsInner)
 

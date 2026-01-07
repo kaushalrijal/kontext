@@ -4,7 +4,7 @@ import type { Post } from "@/lib/types"
 import { deletePost } from "@/lib/actions/post.actions"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
 
 interface PostDetailProps {
@@ -21,7 +21,8 @@ export function PostDetail({ post }: PostDetailProps) {
     return sessionUserId && sessionUserId === post.userId
   }, [session, post.userId])
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
+    if (!post.id) return
     if (confirm("Delete this post? This action cannot be undone.")) {
       deletePost(post.id)
         .then(() => router.push("/posts"))
@@ -29,7 +30,7 @@ export function PostDetail({ post }: PostDetailProps) {
           console.error("Failed to delete post", error)
         })
     }
-  }
+  }, [post.id, router])
 
   return (
     <div className="space-y-8 sm:space-y-12 lg:space-y-16">
