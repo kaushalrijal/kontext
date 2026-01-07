@@ -325,7 +325,7 @@ Rate limit information is included in response headers:
 - `X-RateLimit-Reset`: Unix timestamp when the limit resets
 - `Retry-After`: Seconds to wait before retrying (on 429 responses)
 
-When rate limited, the API returns a `429 Too Many Requests` status with a helpful error message.
+When rate limited, the API returns a `429 Too Many Requests` status with an error message.
 
 ## Project Structure
 
@@ -417,23 +417,6 @@ The application includes comprehensive error handling:
 - **Authentication Errors**: Unauthorized access is handled gracefully
 - **Rate Limiting**: 429 responses with retry information
 
-### Client-Side Errors
-
-- **User-Friendly Messages**: Specific error messages for different failure scenarios:
-  - Embedding service unavailable
-  - Image upload failures
-  - Permission errors
-  - Post not found
-- **Toast Notifications**: Errors are displayed as toast notifications in the bottom-right corner
-- **Graceful Degradation**: App continues to function even if some features fail
-
-### Error Messages
-
-The application provides helpful error messages without exposing sensitive details:
-
-- ✅ "Unable to create post. The embedding service is not available."
-- ✅ "You don't have permission to update this post."
-- ❌ Not: "Connection refused: 127.0.0.1:8050" (too technical)
 
 ## Similarity Examples
 
