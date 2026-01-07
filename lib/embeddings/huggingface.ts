@@ -1,80 +1,62 @@
 import { EmbeddingProvider, EmbedInput } from "./provider";
-import fetch from "node-fetch";
 import fs from "fs/promises";
 import path from "path";
 
-const HF_MODEL = "openai/clip-vit-base-patch32";
-const HF_ENDPOINT = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
-const HF_TOKEN = process.env.HF_API_TOKEN!;
+/**
+ * NOTE:
+ * Despite the filename, this provider currently delegates to a local
+ * FastAPI inference server that performs:
+ *   - image -> caption
+ *   - caption + text -> embedding
+ *
+ * This is intentional to avoid external API constraints.
+ */
+
+const LOCAL_INFERENCE_URL = "http://127.0.0.1:8050/embed";
 
 export class HuggingFaceEmbeddingProvider implements EmbeddingProvider {
   async embed(input: EmbedInput): Promise<number[]> {
-    const vectors: number[][] = [];
-
-    // ---- image embedding ----
-    const imagePath = path.join(process.cwd(), "public", input.imagePath);
-    const imageBuffer = await fs.readFile(imagePath);
-    const imageBase64 = imageBuffer.toString("base64");
-
-    const imageRes = await fetch(HF_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: {
-          image: imageBase64,
-        },
-      }),
-    });
-
-    const imageJson: any = await imageRes.json();
-    const imageVector = imageJson?.[0]?.embedding;
-
-    if (!imageVector) {
-      throw new Error("Failed to get image embedding from Hugging Face");
+    if (!input.text && !input.imagePath) {
+      throw new Error("Either text or imagePath must be provided for embedding");
     }
 
-    vectors.push(imageVector);
+    const form = new FormData();
 
-    // ---- text embedding (optional) ----
     if (input.text) {
-      const textRes = await fetch(HF_ENDPOINT, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${HF_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputs: input.text,
-        }),
-      });
+      form.append("text", input.text);
+    }
 
-      const textJson: any = await textRes.json();
-      const textVector = textJson?.[0]?.embedding;
+    if (input.imagePath) {
+      const publicDir = path.join(process.cwd(), "public");
 
-      if (!textVector) {
-        throw new Error("Failed to get text embedding from Hugging Face");
+      // Normalize to a relative path and prevent path traversal
+      const relativePath = input.imagePath.replace(/^\/+/, "");
+      const fullPath = path.resolve(publicDir, relativePath);
+
+      if (!fullPath.startsWith(publicDir + path.sep)) {
+        throw new Error("Invalid imagePath: must point inside the public directory");
       }
 
-      vectors.push(textVector);
+      const imageBuffer = await fs.readFile(fullPath);
+
+      form.append("image", new Blob([imageBuffer]), "image.jpg");
     }
 
-    // ---- average vectors ----
-    return averageVectors(vectors);
-  }
-}
+    const res = await fetch(LOCAL_INFERENCE_URL, {
+      method: "POST",
+      body: form,
+    });
 
-function averageVectors(vectors: number[][]): number[] {
-  const dim = vectors[0].length;
-  const result = new Array(dim).fill(0);
-
-  for (const vec of vectors) {
-    for (let i = 0; i < dim; i++) {
-      result[i] += vec[i];
+    if (!res.ok) {
+      throw new Error(`Local inference failed: ${await res.text()}`);
     }
-  }
 
-  return result.map((v) => v / vectors.length);
+    const json = await res.json();
+
+    if (!Array.isArray(json.embedding)) {
+      throw new Error("Invalid embedding returned from local inference");
+    }
+
+    return json.embedding;
+  }
 }
