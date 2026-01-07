@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "build": "prisma generate && next build",
-    "dev": "next dev",
+    "dev": "prisma generate && next dev",
     "lint": "eslint .",
     "start": "next start",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && next build"
   },
   "dependencies": {
     "@pinecone-database/pinecone": "^3.0.0",
