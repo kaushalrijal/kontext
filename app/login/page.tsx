@@ -10,6 +10,9 @@ export default function LoginPage() {
   const { status } = useSession()
 
   useEffect(() => {
+    // Set document title
+    document.title = "Login - Kontext"
+    
     if (status === "authenticated") {
       router.push("/posts")
     }

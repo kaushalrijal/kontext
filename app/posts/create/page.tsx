@@ -13,6 +13,9 @@ export default function CreatePostPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Set document title
+    document.title = "Create Post - Kontext"
+    
     if (status === "authenticated") {
       setIsLoading(false)
     }

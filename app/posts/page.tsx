@@ -25,6 +25,9 @@ export default function PostsPage() {
 
   // Show toast when user successfully logs in
   useEffect(() => {
+    // Set document title
+    document.title = "Posts - Kontext"
+    
     if (status === "authenticated" && typeof window !== "undefined") {
       const justLoggedIn = sessionStorage.getItem("justLoggedIn")
       if (justLoggedIn === "true") {

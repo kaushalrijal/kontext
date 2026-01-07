@@ -32,6 +32,10 @@ export default function PostDetailPage() {
         if (isMounted) {
           setPost(foundPost as Post)
           setIsLoading(false)
+          // Update document title with post caption
+          if (foundPost.caption) {
+            document.title = `${foundPost.caption.slice(0, 50)}${foundPost.caption.length > 50 ? '...' : ''} - Kontext`
+          }
         }
       } catch (error) {
         console.error("Failed to load post", error)

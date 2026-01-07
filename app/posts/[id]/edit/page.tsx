@@ -29,6 +29,8 @@ export default function EditPostPage() {
         if (isMounted) {
           setPost(foundPost as Post)
           setIsLoading(false)
+          // Update document title
+          document.title = "Edit Post - Kontext"
         }
       } catch (error) {
         console.error("Failed to load post", error)
