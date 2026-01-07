@@ -4,7 +4,7 @@ A modern web application for creating, editing, and discovering posts with AI-po
 
 ## Demo
 
-📹 **[Watch Demo Video](https://drive.google.com/file/d/1wjGabXLRK513kcUnmXeqyBF3J6gCLIit/view)**
+**[Watch Demo Video](https://drive.google.com/file/d/1wjGabXLRK513kcUnmXeqyBF3J6gCLIit/view)**
 
 ## Table of Contents
 
@@ -145,6 +145,9 @@ GOOGLE_SERVICE_KEY="base64-encoded-service-account-json"
 ```env
 # Embedding model identifier (for metadata tracking)
 EMBEDDING_MODEL="multimodalembedding@001"
+
+# Authentication secret for local inference server (if your server requires it)
+EMBEDDING_SECRET="your-secret-key"
 ```
 
 ## Image Upload Setup (UploadThing)
@@ -188,7 +191,7 @@ This option uses a local FastAPI inference server that you host yourself. It pro
 - **Full control** over the embedding process
 - **No external API costs**
 - **Privacy** - data stays on your infrastructure
-- **384-dimensional embeddings** optimized for similarity search
+- **384-dimensional embeddings** - optimized for CPU-based inference with excellent performance on local hardware while maintaining high similarity search quality
 
 #### Setup
 
