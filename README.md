@@ -55,8 +55,8 @@ A modern web application for creating, editing, and discovering posts with AI-po
 
 1. **Clone the repository:**
 ```bash
-git clone <repository-url>
-cd Kontext
+git clone https://github.com/kaushalrijal/kontext.git
+cd kontext
 ```
 
 2. **Install dependencies:**
