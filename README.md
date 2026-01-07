@@ -2,8 +2,13 @@
 
 A modern web application for creating, editing, and discovering posts with AI-powered similarity search. Kontext uses multimodal embeddings to find similar posts based on both images and captions.
 
+## Demo
+
+📹 **[Watch Demo Video](https://drive.google.com/file/d/1wjGabXLRK513kcUnmXeqyBF3J6gCLIit/view)**
+
 ## Table of Contents
 
+- [Demo](#demo)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Quick Start](#quick-start)
@@ -148,33 +153,79 @@ This option uses a local FastAPI inference server that you host yourself. It pro
 - **Full control** over the embedding process
 - **No external API costs**
 - **Privacy** - data stays on your infrastructure
-- **328-dimensional embeddings** optimized for similarity search
+- **384-dimensional embeddings** optimized for similarity search
 
 #### Setup
 
-1. **Start your local inference server** (must be running before creating posts):
-   - The server should expose an endpoint at `http://127.0.0.1:8050/embed` (or your custom URL)
-   - Accepts POST requests with:
-     - `image`: Image file (multipart/form-data)
-     - `text`: Optional caption text
-   - Returns JSON with `embedding` array (328 dimensions)
+1. **Clone and set up the inference server repository:**
+```bash
+git clone https://github.com/kaushalrijal/multimodal-embedder.git
+cd multimodal-embedder
+```
 
-2. **Configure environment variables:**
+2. **Create and activate a virtual environment:**
+```bash
+python -m venv venv
+source venv/bin/activate  # On macOS/Linux
+# or
+venv\Scripts\activate  # On Windows
+```
+
+3. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Start the inference server:**
+```bash
+uvicorn main:app --host 127.0.0.1 --port 8050
+```
+
+The server will be available at `http://127.0.0.1:8050` and exposes the `/embed` endpoint.
+
+5. **Configure environment variables in your Kontext project:**
 ```env
 EMBEDDING_PROVIDER="local"
 LOCAL_INFERENCE_URL="http://127.0.0.1:8050/embed"  # Optional, defaults to this
 ```
 
-3. **Verify the server is running:**
-   - The app will show helpful error messages if the server is unavailable
+6. **Verify the server is running:**
+   - The server should respond to `GET http://127.0.0.1:8050/` with `{"Message": "Hello World"}`
+   - The Kontext app will show helpful error messages if the server is unavailable
    - Check that embeddings are generated when creating posts
+
+> **Note**: The inference server must be running before creating posts in Kontext. Keep the server running in a separate terminal while using the application.
 
 #### Embedding Details
 
-- **Dimensions**: 328
+- **Dimensions**: 384
+- **Models Used**:
+  - **Image Captioning**: Salesforce/blip-image-captioning-base (generates captions from images)
+  - **Text Embeddings**: sentence-transformers/all-MiniLM-L6-v2 (generates embeddings from text)
 - **Input**: Image (optional) + Text (optional)
 - **Output**: Single multimodal embedding vector
-- **Format**: Array of 328 floating-point numbers
+- **Format**: Array of 384 floating-point numbers
+- **Process**: If an image is provided, it's first captioned using BLIP, then the caption is combined with any provided text, and finally embedded using Sentence Transformers
+
+#### API Reference
+
+The local inference server provides the following endpoint:
+
+**`POST /embed`**
+
+- **Parameters**:
+  - `text` (optional): Text string to embed
+  - `image` (optional): Image file to process
+- **Response**:
+```json
+{
+  "caption": "generated image caption",
+  "embedding": [0.123, -0.456, ...],
+  "dim": 384
+}
+```
+
+For more details, see the [multimodal-embedder repository](https://github.com/kaushalrijal/multimodal-embedder).
 
 ### Option 2: Google Vertex AI
 
@@ -217,7 +268,7 @@ Each post contains:
 - `userId`: Owner of the post (via NextAuth)
 - `createdAt`, `updatedAt`: Timestamps
 - `pineconeCombinedVectorId` (optional): Pinecone vector ID
-- `embeddingDim` (optional): Embedding dimension (e.g., 328 for local, 1408 for Vertex)
+- `embeddingDim` (optional): Embedding dimension (e.g., 384 for local, 1408 for Vertex)
 - `embeddingModel` (optional): Model identifier
 - `embeddingUpdatedAt` (optional): Last embedding update timestamp
 
@@ -230,7 +281,7 @@ When a post is created or updated:
    - Image and caption are sent to the configured embedding provider
    - For local provider: Sent to your self-hosted inference server
    - For Vertex AI: Sent to Google's API
-3. **Vector Storage**: The embedding (328 dimensions for local, 1408 for Vertex) is stored in Pinecone
+3. **Vector Storage**: The embedding (384 dimensions for local, 1408 for Vertex) is stored in Pinecone
    - Vector ID = Post ID
    - Metadata includes `postId` and `dimension`
 4. **Metadata Persistence**: Embedding metadata is stored in PostgreSQL for observability
@@ -255,7 +306,7 @@ Post saved to PostgreSQL
   ↓
 Embedding generated (local server or Vertex AI)
   ↓
-Vector stored in Pinecone (328 or 1408 dimensions)
+Vector stored in Pinecone (384 or 1408 dimensions)
   ↓
 Metadata saved to PostgreSQL
 ```
