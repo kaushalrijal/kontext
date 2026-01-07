@@ -7,7 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const prismaOutputPath = path.join(__dirname, '../lib/generated/prisma');
+const prismaOutputPath = path.join(__dirname, '../node_modules/.prisma/client');
 const binaryNames = [
   'libquery_engine-rhel-openssl-3.0.x.so.node',
   'libquery_engine-debian-openssl-3.0.x.so.node',
@@ -31,9 +31,11 @@ if (foundBinary) {
 } else {
   console.warn(`⚠️  Prisma binary not found in ${prismaOutputPath}`);
   console.warn('   This may cause issues on Vercel. Checking if binaries exist...');
-  const files = fs.readdirSync(prismaOutputPath).filter(f => f.includes('query_engine') || f.includes('.node'));
-  if (files.length > 0) {
-    console.warn(`   Found these files: ${files.join(', ')}`);
+  if (fs.existsSync(prismaOutputPath)) {
+    const files = fs.readdirSync(prismaOutputPath).filter(f => f.includes('query_engine') || f.includes('.node'));
+    if (files.length > 0) {
+      console.warn(`   Found these files: ${files.join(', ')}`);
+    }
   }
   // Don't exit with error - let the build continue and see if it works
 }

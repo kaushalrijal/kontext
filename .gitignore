@@ -28,7 +28,9 @@ next-env.d.ts
 
 # vertex tests
 Python/
-/lib/generated/prisma
+
+# old prisma generated folder (now using node_modules/.prisma)
+lib/generated/
 
 # uploaded iamges
 public/uploads/
