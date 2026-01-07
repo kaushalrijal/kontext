@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams, usePathname } from "next/navigation"
 import { Header } from "@/components/shared/header"
 import { PostDetail } from "@/components/posts/post-detail"
+import { SimilarPosts } from "@/components/posts/similar-posts"
 import { getPostById } from "@/lib/actions/post.actions"
 import type { Post } from "@/lib/types"
 import { Skeleton } from "@/components/shared/skeleton"
@@ -79,7 +80,10 @@ export default function PostDetailPage() {
     <main className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        <PostDetail post={post} />
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)] gap-8 lg:gap-12 items-start">
+          <PostDetail post={post} />
+          <SimilarPosts currentPost={post} />
+        </div>
       </div>
     </main>
   )

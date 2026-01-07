@@ -1,7 +1,6 @@
 "use client"
 
 import type { Post } from "@/lib/types"
-import { SimilarPosts } from "./similar-posts"
 import { deletePost } from "@/lib/actions/post.actions"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -34,7 +33,7 @@ export function PostDetail({ post }: PostDetailProps) {
 
   return (
     <div className="space-y-8 sm:space-y-12 lg:space-y-16">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl">
         <div className="border border-border rounded-sm overflow-hidden bg-card">
           <div className="bg-muted overflow-hidden flex justify-center">
             <img
@@ -98,8 +97,6 @@ export function PostDetail({ post }: PostDetailProps) {
           </div>
         </div>
       </div>
-
-      <SimilarPosts currentPost={post} />
     </div>
   )
 }
