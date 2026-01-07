@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
-import { randomUUID } from "crypto";
-import { promises as fs } from "fs";
-import path from "path";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit";
+import { UTApi } from "uploadthing/server";
+import { randomUUID } from "crypto";
+import { promises as fs } from "fs";
+import path from "path";
 
 export const runtime = "nodejs";
+
+const utapi = new UTApi();
 
 export async function POST(req: Request) {
   try {
@@ -45,23 +48,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Image file is required" }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Try UploadThing first, fallback to local storage
+    let imageUrl: string;
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
+    try {
+      // Upload to UploadThing with timeout
+      const uploadPromise = utapi.uploadFiles(file);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Upload timeout")), 8000)
+      );
 
-    const ext = path.extname(file.name) || ".jpg";
-    const filename = `${randomUUID()}${ext}`;
-    const filepath = path.join(uploadsDir, filename);
+      const response = await Promise.race([uploadPromise, timeoutPromise]) as Awaited<ReturnType<typeof utapi.uploadFiles>>;
 
-    await fs.writeFile(filepath, buffer);
+      if (response.error) {
+        throw new Error(response.error.message || "UploadThing upload failed");
+      }
 
-    const imageUrl = `/uploads/${filename}`;
+      imageUrl = response.data.url;
+    } catch (uploadError) {
+      // Fallback to local file storage
+      console.warn("UploadThing failed, falling back to local storage:", uploadError);
+
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      await fs.mkdir(uploadsDir, { recursive: true });
+
+      const ext = path.extname(file.name) || ".jpg";
+      const filename = `${randomUUID()}${ext}`;
+      const filepath = path.join(uploadsDir, filename);
+
+      await fs.writeFile(filepath, buffer);
+
+      imageUrl = `/uploads/${filename}`;
+    }
 
     return NextResponse.json({ imageUrl }, { status: 200 });
   } catch (error) {
     console.error("Error uploading image", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    if (errorMessage.includes("timeout") || errorMessage.includes("Connect")) {
+      return NextResponse.json(
+        { error: "Upload service is temporarily unavailable. Please try again." },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
   }
 }

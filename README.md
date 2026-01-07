@@ -107,6 +107,10 @@ NEXTAUTH_SECRET="your-nextauth-secret"  # Generate with: openssl rand -base64 32
 # Google OAuth (for authentication)
 GOOGLE_CLIENT_ID="your-google-client-id"
 GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# UploadThing (for image uploads)
+UPLOADTHING_SECRET="your-uploadthing-secret"
+UPLOADTHING_APP_ID="your-uploadthing-app-id"
 ```
 
 ### Embedding Provider Configuration

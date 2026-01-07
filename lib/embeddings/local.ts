@@ -25,17 +25,31 @@ export class LocalEmbeddingProvider implements EmbeddingProvider {
     }
 
     if (input.imagePath) {
-      const publicDir = path.join(process.cwd(), "public");
+      let imageBuffer: Buffer;
 
-      // Normalize to a relative path and prevent path traversal
-      const relativePath = input.imagePath.replace(/^\/+/, "");
-      const fullPath = path.resolve(publicDir, relativePath);
+      // Check if it's a remote URL (http/https)
+      if (input.imagePath.startsWith("http://") || input.imagePath.startsWith("https://")) {
+        // Fetch the image from the remote URL
+        const imageResponse = await fetch(input.imagePath);
+        if (!imageResponse.ok) {
+          throw new Error(`Failed to fetch image from ${input.imagePath}`);
+        }
+        const arrayBuffer = await imageResponse.arrayBuffer();
+        imageBuffer = Buffer.from(arrayBuffer);
+      } else {
+        // Handle local file path
+        const publicDir = path.join(process.cwd(), "public");
 
-      if (!fullPath.startsWith(publicDir + path.sep)) {
-        throw new Error("Invalid imagePath: must point inside the public directory");
+        // Normalize to a relative path and prevent path traversal
+        const relativePath = input.imagePath.replace(/^\/+/, "");
+        const fullPath = path.resolve(publicDir, relativePath);
+
+        if (!fullPath.startsWith(publicDir + path.sep)) {
+          throw new Error("Invalid imagePath: must point inside the public directory");
+        }
+
+        imageBuffer = await fs.readFile(fullPath);
       }
-
-      const imageBuffer = await fs.readFile(fullPath);
 
       form.append("image", new Blob([imageBuffer]), "image.jpg");
     }

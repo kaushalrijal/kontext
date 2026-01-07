@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Post" ADD COLUMN IF NOT EXISTS "pineconeCombinedVectorId" TEXT,
+ADD COLUMN IF NOT EXISTS "embeddingDim" INTEGER,
+ADD COLUMN IF NOT EXISTS "embeddingModel" TEXT,
+ADD COLUMN IF NOT EXISTS "embeddingUpdatedAt" TIMESTAMP(3);
+

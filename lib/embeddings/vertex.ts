@@ -53,8 +53,23 @@ export class VertexEmbeddingProvider implements EmbeddingProvider {
   }
 
   async embed(input: EmbedInput): Promise<number[]> {
-    const imagePath = path.join(process.cwd(), "public", input.imagePath);
-    const imageBuffer = await fs.readFile(imagePath);
+    let imageBuffer: Buffer;
+
+    // Check if it's a remote URL (http/https)
+    if (input.imagePath.startsWith("http://") || input.imagePath.startsWith("https://")) {
+      // Fetch the image from the remote URL
+      const imageResponse = await fetch(input.imagePath);
+      if (!imageResponse.ok) {
+        throw new Error(`Failed to fetch image from ${input.imagePath}`);
+      }
+      const arrayBuffer = await imageResponse.arrayBuffer();
+      imageBuffer = Buffer.from(arrayBuffer);
+    } else {
+      // Handle local file path
+      const imagePath = path.join(process.cwd(), "public", input.imagePath);
+      imageBuffer = await fs.readFile(imagePath);
+    }
+
     const imageBase64 = imageBuffer.toString("base64");
 
     const accessToken = await this.getAccessToken();
