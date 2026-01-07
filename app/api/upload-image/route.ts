@@ -67,7 +67,6 @@ export async function POST(req: Request) {
       imageUrl = response.data.url;
     } catch (uploadError) {
       // Fallback to local file storage
-      console.warn("UploadThing failed, falling back to local storage:", uploadError);
 
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);

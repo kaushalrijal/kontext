@@ -50,8 +50,6 @@ export async function POST(req: Request) {
       text: hasCaption ? caption : undefined,
     });
 
-    console.log("Embedding dim:", vector.length);
-
     return NextResponse.json({
       vector,
       dimension: vector.length,

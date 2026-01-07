@@ -105,12 +105,7 @@ export async function querySimilarPostsByIdWithLazyBackfill({
     };
   } catch (error) {
     // If the query by ID fails (e.g., vector not found), fall through to lazy backfill.
-    console.log(
-      "[pinecone] Lazy backfill triggered for post",
-      postId,
-      "- reason:",
-      error instanceof Error ? error.message : String(error)
-    );
+    // Silently continue to embedding generation
   }
 
   // 2) Vector does not exist yet: compute embedding once and upsert
