@@ -2,12 +2,36 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getEmbeddingProvider } from "@/lib/embeddings";
 import { querySimilarPostsByIdWithLazyBackfill } from "@/lib/pinecone/posts";
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit";
 
 type RouteContext =
   | { params: { id: string } }
   | { params: Promise<{ id: string }> };
 
-export async function GET(_req: Request, context: RouteContext) {
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "multimodalembedding@001";
+
+export async function GET(req: Request, context: RouteContext) {
+  // Rate limiting
+  const identifier = getClientIdentifier(req);
+  const rateLimit = checkRateLimit(identifier, RATE_LIMITS.similarPosts);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: "Too many requests. Please try again later.",
+        retryAfter: Math.ceil((rateLimit.resetTime - Date.now()) / 1000),
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rateLimit.resetTime - Date.now()) / 1000)),
+          "X-RateLimit-Limit": String(RATE_LIMITS.similarPosts.maxRequests),
+          "X-RateLimit-Remaining": String(rateLimit.remaining),
+          "X-RateLimit-Reset": String(rateLimit.resetTime),
+        },
+      }
+    );
+  }
+
   const params = await Promise.resolve(context.params);
   const postId = params.id;
 
@@ -36,7 +60,7 @@ export async function GET(_req: Request, context: RouteContext) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
 
-  const matches = await querySimilarPostsByIdWithLazyBackfill({
+  const { matches, backfilledVectorLength } = await querySimilarPostsByIdWithLazyBackfill({
     postId,
     topK: 6,
     excludePostId: postId,
@@ -48,6 +72,18 @@ export async function GET(_req: Request, context: RouteContext) {
       });
     },
   });
+
+  if (backfilledVectorLength) {
+    await prisma.post.update({
+      where: { id: postId },
+      data: {
+        pineconeCombinedVectorId: postId,
+        embeddingDim: backfilledVectorLength,
+        embeddingModel: EMBEDDING_MODEL,
+        embeddingUpdatedAt: new Date(),
+      },
+    });
+  }
 
   if (matches.length === 0) {
     return NextResponse.json({ results: [] });

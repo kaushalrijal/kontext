@@ -1,13 +1,13 @@
 import { EmbeddingProvider } from "./provider";
-import { HuggingFaceEmbeddingProvider } from "./huggingface";
+import { LocalEmbeddingProvider } from "./local";
 import { VertexEmbeddingProvider } from "./vertex";
 
 export function getEmbeddingProvider(): EmbeddingProvider {
   switch (process.env.EMBEDDING_PROVIDER) {
     case "vertex":
       return new VertexEmbeddingProvider();
-    case "huggingface":
+    case "local":
     default:
-      return new HuggingFaceEmbeddingProvider();
+      return new LocalEmbeddingProvider();
   }
 }

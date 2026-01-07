@@ -4,6 +4,7 @@ import type { Post } from "@/lib/types"
 import { Skeleton } from "@/components/shared/skeleton"
 import Link from "next/link"
 import React, { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
 
 interface SimilarPostsProps {
   currentPost: Post
@@ -41,6 +42,7 @@ function SimilarPostsInner({ currentPost }: SimilarPostsProps) {
           return
         }
         console.error("Failed to load similar posts", error)
+        toast.error("Failed to load similar posts. Please try again.")
         if (isMounted) {
           setResults([])
         }
@@ -60,7 +62,7 @@ function SimilarPostsInner({ currentPost }: SimilarPostsProps) {
   }, [currentPost.id])
 
   const visibleResults = useMemo(
-    () => results.slice(0, 5),
+    () => results.slice(0, 6),
     [results]
   )
 
@@ -70,7 +72,7 @@ function SimilarPostsInner({ currentPost }: SimilarPostsProps) {
       <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8">Posts with similar content to yours</p>
       {isLoading ? (
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
-          {Array.from({ length: 5 }).map((_, idx) => (
+          {Array.from({ length: 6 }).map((_, idx) => (
             <div
               key={idx}
               className="border border-border rounded-sm bg-card px-3 py-3 sm:px-4 sm:py-4 flex items-center gap-4"

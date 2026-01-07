@@ -2,11 +2,13 @@
 
 import { useEffect, useState, useMemo } from "react"
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
 import dynamic from "next/dynamic"
 import { Header } from "@/components/shared/header"
 import { listPosts } from "@/lib/actions/post.actions"
 import type { Post } from "@/lib/types"
 import { Skeleton } from "@/components/shared/skeleton"
+import { toast } from "sonner"
 
 const Gallery = dynamic(
   () => import("@/components/posts/gallery").then((mod) => mod.Gallery),
@@ -17,8 +19,20 @@ const Gallery = dynamic(
 
 export default function PostsPage() {
   const pathname = usePathname()
+  const { status } = useSession()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
+
+  // Show toast when user successfully logs in
+  useEffect(() => {
+    if (status === "authenticated" && typeof window !== "undefined") {
+      const justLoggedIn = sessionStorage.getItem("justLoggedIn")
+      if (justLoggedIn === "true") {
+        toast.success("Successfully signed in")
+        sessionStorage.removeItem("justLoggedIn")
+      }
+    }
+  }, [status])
 
   useEffect(() => {
     let isMounted = true

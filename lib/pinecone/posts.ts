@@ -21,6 +21,11 @@ type QuerySimilarPostsByIdWithBackfillInput = {
   getEmbedding: () => Promise<number[]>;
 };
 
+type QuerySimilarPostsByIdWithBackfillResult = {
+  matches: Array<{ postId: string; score: number }>;
+  backfilledVectorLength?: number;
+};
+
 export async function upsertPostEmbedding({
   postId,
   vector,
@@ -40,9 +45,7 @@ export async function upsertPostEmbedding({
 }
 
 export async function deletePostEmbedding(postId: string): Promise<void> {
-  await pineconeIndex.deleteMany({
-    ids: [postId],
-  });
+  await pineconeIndex.deleteMany([postId]);
 }
 
 export async function querySimilarPosts({
@@ -75,9 +78,7 @@ export async function querySimilarPostsByIdWithLazyBackfill({
   topK,
   excludePostId,
   getEmbedding,
-}: QuerySimilarPostsByIdWithBackfillInput): Promise<
-  Array<{ postId: string; score: number }>
-> {
+}: QuerySimilarPostsByIdWithBackfillInput): Promise<QuerySimilarPostsByIdWithBackfillResult> {
   // 1) Try querying by existing vector ID (no recompute if present)
   try {
     const response = await pineconeIndex.query({
@@ -96,10 +97,12 @@ export async function querySimilarPostsByIdWithLazyBackfill({
 
     // If the ID exists, this query will succeed (even if there are 0 matches).
     // In that case, we should NOT recompute the embedding.
-    return matches.map((match) => ({
-      postId: match.id,
-      score: match.score ?? 0,
-    }));
+    return {
+      matches: matches.map((match) => ({
+        postId: match.id,
+        score: match.score ?? 0,
+      })),
+    };
   } catch (error) {
     // If the query by ID fails (e.g., vector not found), fall through to lazy backfill.
     console.log(
@@ -115,11 +118,13 @@ export async function querySimilarPostsByIdWithLazyBackfill({
   await upsertPostEmbedding({ postId, vector });
 
   // 3) Now query using the freshly upserted vector
-  return querySimilarPosts({
+  const matches = await querySimilarPosts({
     vector,
     topK,
     excludePostId,
   });
+
+  return { matches, backfilledVectorLength: vector.length };
 }
 
 

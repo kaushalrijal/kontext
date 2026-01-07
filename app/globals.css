@@ -137,3 +137,33 @@
     @apply bg-primary text-primary-foreground px-3 py-1.5 rounded-sm cursor-pointer hover:opacity-90 font-medium text-sm;
   }
 }
+
+/* Toast styling - only use primary, white, or black */
+[data-sonner-toast] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+[data-sonner-toast][data-type="success"] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-sonner-toast][data-type="error"] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-sonner-toast][data-type="info"] {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+[data-sonner-toast] [data-icon] {
+  color: hsl(var(--primary)) !important;
+}
+
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: hsl(var(--foreground)) !important;
+}

@@ -5,6 +5,10 @@ export interface Post {
   userId: string
   createdAt: string | Date
   updatedAt: string | Date
+  pineconeCombinedVectorId?: string | null
+  embeddingDim?: number | null
+  embeddingModel?: string | null
+  embeddingUpdatedAt?: string | Date | null
   user?: {
     id: string
     name?: string | null

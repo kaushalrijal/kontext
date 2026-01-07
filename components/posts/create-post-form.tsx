@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createPost } from "@/lib/actions/post.actions"
+import { toast } from "sonner"
 
 export function CreatePostForm() {
   const router = useRouter()
@@ -18,7 +19,7 @@ export function CreatePostForm() {
 
   const processFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file")
+      toast.error("Please select an image file")
       return
     }
 
@@ -111,9 +112,21 @@ export function CreatePostForm() {
           imageUrl: data.imageUrl,
         })
 
+        toast.success("Post created")
         router.push("/posts")
       } catch (error) {
         console.error("Failed to create post", error)
+        const errorMessage = error instanceof Error ? error.message : "Unknown error"
+        
+        if (errorMessage.includes("embedding service") || errorMessage.includes("unavailable")) {
+          toast.error("Unable to create post. The embedding service is not available.")
+        } else if (errorMessage.includes("upload")) {
+          toast.error("Failed to upload image. Please try again.")
+        } else if (errorMessage.includes("Unauthorized")) {
+          toast.error("You must be signed in to create posts.")
+        } else {
+          toast.error("Failed to create post. Please try again.")
+        }
       } finally {
         setIsSubmitting(false)
       }

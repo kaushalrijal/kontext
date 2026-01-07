@@ -41,13 +41,25 @@ export async function createPost(input: {
     },
   });
 
-  const provider = getEmbeddingProvider();
-  const vector = await provider.embed({
-    imagePath: post.imageUrl,
-    text: post.caption,
-  });
+  try {
+    const provider = getEmbeddingProvider();
+    const vector = await provider.embed({
+      imagePath: post.imageUrl,
+      text: post.caption,
+    });
 
-  await upsertPostEmbedding({ postId: post.id, vector });
+    await upsertPostEmbedding({ postId: post.id, vector });
+  } catch (error) {
+    // Delete the post if embedding fails
+    await prisma.post.delete({ where: { id: post.id } });
+    
+    // Re-throw with a user-friendly message
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
+      throw new Error("Unable to process post. The embedding service is not available.");
+    }
+    throw new Error("Failed to process post content. Please try again.");
+  }
 
   // revalidate gallery page
   revalidatePath("/posts");
@@ -123,13 +135,22 @@ export async function updatePost(input: {
     },
   });
 
-  const provider = getEmbeddingProvider();
-  const vector = await provider.embed({
-    imagePath: post.imageUrl,
-    text: post.caption,
-  });
+  try {
+    const provider = getEmbeddingProvider();
+    const vector = await provider.embed({
+      imagePath: post.imageUrl,
+      text: post.caption,
+    });
 
-  await upsertPostEmbedding({ postId: post.id, vector });
+    await upsertPostEmbedding({ postId: post.id, vector });
+  } catch (error) {
+    // Re-throw with a user-friendly message
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
+      throw new Error("Unable to update post. The embedding service is not available.");
+    }
+    throw new Error("Failed to process post content. Please try again.");
+  }
 
   revalidatePath(`/posts/${id}`);
   revalidatePath("/posts");
@@ -162,6 +183,47 @@ export async function deletePost(id: string) {
     where: { id },
   });
 
+  revalidatePath("/posts");
+
+  return { success: true };
+}
+
+// recompute embeddings for a post (admin/debug)
+export async function recomputePostEmbedding(id: string) {
+  const userId = await requireUserId();
+
+  if (!id) {
+    throw new Error("Post id is required");
+  }
+
+  const existing = await prisma.post.findUnique({ where: { id } });
+
+  if (!existing) {
+    throw new Error("Post not found");
+  }
+
+  if (existing.userId !== userId) {
+    throw new Error("Forbidden");
+  }
+
+  try {
+    const provider = getEmbeddingProvider();
+    const vector = await provider.embed({
+      imagePath: existing.imageUrl,
+      text: existing.caption,
+    });
+
+    await upsertPostEmbedding({ postId: existing.id, vector });
+  } catch (error) {
+    // Re-throw with a user-friendly message
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("unavailable") || errorMessage.includes("running")) {
+      throw new Error("Unable to recompute embedding. The embedding service is not available.");
+    }
+    throw new Error("Failed to recompute embedding. Please try again.");
+  }
+
+  revalidatePath(`/posts/${id}`);
   revalidatePath("/posts");
 
   return { success: true };

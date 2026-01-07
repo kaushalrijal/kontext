@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import type { Post } from "@/lib/types"
 import { updatePost } from "@/lib/actions/post.actions"
+import { toast } from "sonner"
 
 interface EditPostFormProps {
   post: Post
@@ -22,7 +23,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
 
   const processFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("Please select an image file")
+      toast.error("Please select an image file")
       return
     }
 
@@ -115,9 +116,23 @@ export function EditPostForm({ post }: EditPostFormProps) {
         }
 
         await updatePost({ id: post.id, caption, imageUrl })
+        toast.success("Post updated")
         router.push(`/posts/${post.id}`)
       } catch (error) {
         console.error("Failed to update post", error)
+        const errorMessage = error instanceof Error ? error.message : "Unknown error"
+        
+        if (errorMessage.includes("embedding service") || errorMessage.includes("unavailable")) {
+          toast.error("Unable to update post. The embedding service is not available.")
+        } else if (errorMessage.includes("upload")) {
+          toast.error("Failed to upload image. Please try again.")
+        } else if (errorMessage.includes("Unauthorized") || errorMessage.includes("Forbidden")) {
+          toast.error("You don't have permission to update this post.")
+        } else if (errorMessage.includes("not found")) {
+          toast.error("Post not found.")
+        } else {
+          toast.error("Failed to update post. Please try again.")
+        }
       } finally {
         setIsSubmitting(false)
       }

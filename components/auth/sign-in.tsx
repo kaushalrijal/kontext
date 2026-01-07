@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, signOut, useSession } from "next-auth/react"
+import { toast } from "sonner"
 
 export function SignIn() {
   const router = useRouter()
@@ -10,9 +11,12 @@ export function SignIn() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
 
+
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
+      // Store login intent in sessionStorage to show toast after redirect
+      sessionStorage.setItem("justLoggedIn", "true")
       await signIn("google", { callbackUrl: "/posts" })
     } finally {
       setIsLoading(false)
