@@ -2,10 +2,10 @@
 
 import type { Post } from "@/lib/types"
 import { SimilarPosts } from "./similar-posts"
-import { deletePost, listPosts } from "@/lib/actions/post.actions"
+import { deletePost } from "@/lib/actions/post.actions"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useSession } from "next-auth/react"
 
 interface PostDetailProps {
@@ -14,7 +14,6 @@ interface PostDetailProps {
 
 export function PostDetail({ post }: PostDetailProps) {
   const router = useRouter()
-  const [allPosts, setAllPosts] = useState<Post[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
   const { data: session } = useSession()
 
@@ -22,26 +21,6 @@ export function PostDetail({ post }: PostDetailProps) {
     const sessionUserId = (session?.user as { id?: string } | undefined)?.id
     return sessionUserId && sessionUserId === post.userId
   }, [session, post.userId])
-
-  useEffect(() => {
-    let isMounted = true
-    async function loadSimilar() {
-      try {
-        const posts = await listPosts()
-        if (isMounted) {
-          setAllPosts(posts as Post[])
-        }
-      } catch (error) {
-        console.error("Failed to load similar posts", error)
-      }
-    }
-
-    loadSimilar()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
 
   const handleDelete = () => {
     if (confirm("Delete this post? This action cannot be undone.")) {
@@ -120,7 +99,7 @@ export function PostDetail({ post }: PostDetailProps) {
         </div>
       </div>
 
-      <SimilarPosts currentPost={post} allPosts={allPosts} />
+      <SimilarPosts currentPost={post} />
     </div>
   )
 }

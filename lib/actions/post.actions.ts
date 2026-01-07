@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getEmbeddingProvider } from "@/lib/embeddings";
+import {
+  upsertPostEmbedding,
+  deletePostEmbedding,
+} from "@/lib/pinecone/posts";
 
 async function requireUserId() {
   const session = await getServerSession(authOptions);
@@ -35,6 +40,14 @@ export async function createPost(input: {
       userId,
     },
   });
+
+  const provider = getEmbeddingProvider();
+  const vector = await provider.embed({
+    imagePath: post.imageUrl,
+    text: post.caption,
+  });
+
+  await upsertPostEmbedding({ postId: post.id, vector });
 
   // revalidate gallery page
   revalidatePath("/posts");
@@ -110,6 +123,14 @@ export async function updatePost(input: {
     },
   });
 
+  const provider = getEmbeddingProvider();
+  const vector = await provider.embed({
+    imagePath: post.imageUrl,
+    text: post.caption,
+  });
+
+  await upsertPostEmbedding({ postId: post.id, vector });
+
   revalidatePath(`/posts/${id}`);
   revalidatePath("/posts");
 
@@ -134,6 +155,8 @@ export async function deletePost(id: string) {
   if (existing.userId !== userId) {
     throw new Error("Forbidden");
   }
+
+  await deletePostEmbedding(id);
 
   await prisma.post.delete({
     where: { id },
