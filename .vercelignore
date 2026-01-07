@@ -1,0 +1,3 @@
+# Don't ignore anything - we need all files for Prisma
+# This file ensures Vercel includes the generated Prisma client
+
